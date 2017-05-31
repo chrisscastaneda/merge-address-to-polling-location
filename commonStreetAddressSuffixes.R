@@ -917,3 +917,4 @@ kCommonStreetSuffixes <- c( "ALLEY",
   "WLS", 
   "WLS" )
 kCommonStreetSuffixesRegexPattern <- paste(c("\\b(?:",paste(kCommonStreetSuffixes,collapse = "|"),")\\b"), collapse = "")
+
