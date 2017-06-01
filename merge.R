@@ -18,7 +18,6 @@ source("commonStreetAddressSuffixes.R")  # Huge character vector of all common
 kZipcodePattern  <- "[0-9]{5}([- ][0-9]{4})?"  # "Constant" Regex for zipcodes
 setwd(paste(c(kSettingsPath, "merge-address-to-polling-location/"), collapse=""))
 library(dplyr) 
-library(logging)
 
 
 ## ============================= HELPER FUNCTIONS =============================
@@ -44,7 +43,6 @@ NormalizePrecinctId <- function (precincts, states) {
       "\n\tprecincts and states vectors not the same length ",
       "\n\tlength(precincts): ", length(precincts),
       "\n\tlength(states): ", length(states))
-    loginfo(errorStr, logger="merge_logger")
     stop(errorStr)
   } 
 
@@ -194,7 +192,6 @@ VIPNormalizeAddressFile <- function (file) {
       "\n\tPolling list file does not have the expected column headers.", 
       "\n\tWas expecting: Street, Apt, City, State, Zip, Precinct.ID",
       "\n\tFile has: ", paste(names(file), collapses=" "))
-    loginfo(errorStr, logger="merge_logger")
     stop(errorStr)
   }
 
@@ -332,7 +329,6 @@ VIPNormalizePollingListFile <- function (file) {
       "\n\tPolling list file does not have the expected column headers.", 
       "\n\tWas expecting: Street, City, State.ZIP, Country, Precinct. ",
       "\n\tFile has: ", paste(names(file), collapses=" "))
-    loginfo(errorStr, logger="merge_logger")
     stop(errorStr)
   }
   
@@ -367,17 +363,6 @@ VIPNormalizePollingListFile <- function (file) {
 
 ## =================================== MAIN ===================================
 if (interactive()){
-
-  ## ----------------------------- SETUP LOGGING ------------------------------
-
-  basicConfig()
-  logReset()
-  addHandler(writeToFile, logger="merge_logger", file="logs/merge.log")
-  loginfo(paste(":\n",
-                " Merging Address and Polling Location Files\n",
-                "---------------------------------------------"),
-          logger="merge_logger")
-
 
   ## -------------------------------- LOAD DATA --------------------------------
 
