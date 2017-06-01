@@ -7,6 +7,7 @@
 ## polling location attribute.  Cleans and normalizes data files in the process.
 ## ============================================================================
 
+
 ## ============================ SETUP ENVIRONMENT =============================
 rm(list=ls())
 source("settings.R")  # See settings.example.R as guide for setting up
@@ -19,7 +20,20 @@ setwd(paste(c(kSettingsPath, "merge-address-to-polling-location/"), collapse="")
 library(dplyr) 
 library(logging)
 
+
 ## ============================= HELPER FUNCTIONS =============================
+
+NormalizePrecinctId <- function (precincts) {
+  # ---------------------------------------------------------------------------
+  # 
+  # 
+  # Args:
+  #   precincts: character vector of precinct IDs to be normalized.
+  # Returns:
+  #   Character vector of the same length as precincts in standardized format.
+  # ---------------------------------------------------------------------------
+}
+
 ConvertDataFrameToUpperCase <- function (df) {
   # ---------------------------------------------------------------------------
   # Converts all characters in a dataframe to upper case.
@@ -40,6 +54,7 @@ ConvertDataFrameToUpperCase <- function (df) {
     }
   }), stringsAsFactors = FALSE)
 }
+
 VIPNormalizePollingListFile <- function (file) {
   # ---------------------------------------------------------------------------
   # Standardizes polling list file according to VIP 3.0 specifications.  
@@ -57,98 +72,132 @@ VIPNormalizePollingListFile <- function (file) {
   
   ## Initializations
   expectedColumns <- c("Street", "City", "State.ZIP", "Country", "Precinct")
+  rows <- nrow(file)
   
-  # Initialize empty output df with appropriate column headers
-  output <- data.frame(address_location_name = character(),
-                       address_line = character(),
-                       address_line2 = character(), 
-                       address_line3 = character(), 
-                       address_city = character(), 
-                       address_state = character(), 
-                       address_zip = character(), 
-                       precinct_id = character(),
-                       stringsAsFactors = FALSE)
-  
-  
-  ## Internal helper functions
-  CleanDirtyData <- function ( d ) {
-    ## TODO: CLEAN THIS UP, THIS WORKS
+  ## Closures ------------------------------------------------------------------
+  RepairDataFile <- function ( brokenRows ) {
     # -------------------------------------------------------------------------
-    # 
-    # Args:
-    #   d: Dataframe containing the dirty data to be cleaned.  Dataframe is of 
-    #      the same schema as file, containing only the rows in file where the 
-    #      Precinct value is missing.
+    # Closure function to repair and clean dirty records in file. Assumes   
+    # address info exists in the data, and data messiness is due to messy
+    # record's columns being misaligned with file's schema.  
     #
+    # Algorithm:
+    # 1. cache just the broken rows in a dataframe called d
+    # 2. concatenate all values in each broken row into a string
+    # 3. parse strings w/ regex to identify atomic boundaries in address data
+    # 
+    #
+    # Args:
+    #   brokenRows: logical vector representing row indices's of holes in file
+    # Returns:
+    #   A copy of file with the broken rows fixed.
     # -------------------------------------------------------------------------
-    rows <- rownames(d)
+    
+    ## Cache just the broken/dirty rows into a dataframe
+    d <- file[brokenRows, ]
+
+    ## Collapses entire row into a string, removes NA values, and double spaces.
     d$string <- sapply(1:nrow(d), function(row) {
-      # Collapeses entire row into a string and removes  NA values and any double spaces 
       toupper(gsub("  ", " ", gsub(" NA", "", paste(d[row, ], collapse=" "))))
     }) 
+
+    ## Splits d$string by " " (space) characters and converts to character vector
     d$list <- sapply(d$string, function(str) { 
-      # Splits d$string by " " characters and converts to a character 
       strsplit(str, split=" ")
     })
+
+    ## Regex to find the string that looks like a zipcode and cache index value
     d$zipCodeIndex <- sapply(1:nrow(d), function(row) {
-      # Regex to find the string that looks like a zipcode
-      grep(kZipcodePattern, d$list[[row]], value=F)
+      grep(kZipcodePattern, d$list[[row]], value=FALSE)
     })
+
+    ## Regex to find the string that looks like a suffix of a street address
+    ## (i.e. Street, Ave., Rd., Lane, etc...) the cache the index value
     d$streetEndIndex <- sapply(1:nrow(d), function(row) {
-      grep(kCommonStreetSuffixesRegexPattern, d$list[[row]], value=F)
+      grep(kCommonStreetSuffixesRegexPattern, d$list[[row]], value=FALSE)
     })
-    
+
+    ## Identify string segments that compromise street address
     d$Street <- sapply(1:nrow(d), function(row) {
-      paste(d$list[[row]][1:tail(d$streetEndIndex[[row]], n=1)], collapse=" ")
+      streetPosition <- 1:tail(d$streetEndIndex[[row]], n=1)
+      paste(d$list[[row]][streetPosition], collapse=" ")
     })
+
+    ## Identify city in string based relative location of street address and zip
+    ## (Will identify city names that are longer than one word)
     d$City <- sapply(1:nrow(d), function(row) { 
-      #  d$list[[row]][d[row,]$zipCodeIndex - 2]
-      cityStart <- tail(d$streetEndIndex[[row]], n=1) + 1  # right after the end of the street address
+      cityStart <- tail(d$streetEndIndex[[row]], n=1) + 1  # right after street address
       cityEnd   <- d[row,]$zipCodeIndex - 2  # right before the State.Zip
       paste( d$list[[row]][cityStart:cityEnd], collapse=" ")
     })
-    
+
+    ## Concatenate state and zip per schema of file
     d$State.ZIP <- sapply(1:nrow(d), function(row) { 
-      paste(d$list[[row]][d[row,]$zipCodeIndex - 1], 
-            d$list[[row]][d[row,]$zipCodeIndex])
+      paste(d$list[[row]][d[row,]$zipCodeIndex - 1],  # state is right before zip
+            d$list[[row]][d[row,]$zipCodeIndex])  # zip
     })
     
+    ## Assumes precinct is the last string segment 
     d$Precinct <- sapply(1:nrow(d), function(row) { 
       tail(d$list[[row]], n=1)
     })
+
+    ## Assumes country is penultimate string segment
     d$Country <- sapply(1:nrow(d), function(row) { 
       tail(d$list[[row]], n=2)[1]
     })
     
-    
-    return(d[,expectedColumns])
+    ## Replace broken rows in file with repaired rows in d
+    output <- file
+    sapply(rownames(d), function (row) {
+      output[row,] <<- d[row,expectedColumns]
+    })
+    return(output)
   }
+  ## END CLOSURES -------------------------------------------------------------
   
-  ## Error handeling
+  ## Error handling
   hasExpectedColumns <- all(names(file) == expectedColumns)
   if ( !hasExpectedColumns ) {
     errorStr <- paste(
       "[ERROR] Polling list file does not have the expected column headers.", 
       "\n\tWas expecting: Street, City, State.ZIP, Country, Precinct. ",
       "\n\tFile has: ", paste(names(file), collapses=" "))
+    loginfo(errorStr, logger="merge_logger")
     stop(errorStr)
   }
   
   ## Convert everything to uppercase to simplify
   file <- ConvertDataFrameToUpperCase(file)
   
-  ## Check for holes in data and try to repaire
+  ## Check for holes in data and try to repair
   missingPrecinctIndex <- !complete.cases(file$Precinct)
-  hasMissingData <- sum(missingPrecinctIndex) > 0
-  if ( hasMissingData ) {
-    file <- CleanDirtyData( file[missingPrecinctIndex,] )
-    ### START HERE ###
+  hasHolesInData <- sum(missingPrecinctIndex) > 0
+  if ( hasHolesInData ) {
+    file <- RepairDataFile( missingPrecinctIndex )
   }
   
+  ## START HERE ## 
+  ## TODO: normalize precinct
   
+  ## Prepare output per VIP 3.0 address schema
+  output <- data.frame(
+    address_location_name = character(rows),
+    address_line          = file$Street,
+    address_line2         = character(rows), 
+    address_line3         = character(rows), 
+    address_city          = file$City, 
+    address_state         = sapply(file$State.ZIP, function (statezip) { 
+                              strsplit(statezip, split=" ")[[1]][1] }), 
+    address_zip           = sapply(file$State.ZIP, function (statezip) { 
+                              strsplit(statezip, split=" ")[[1]][2] }),
+    precinct_id           = file$Precinct,
+    # precinct_id         = NormalizePrecinctId(data.frame( 
+    #                         precinct = file$Precinct, 
+    #                         state = file$address_state )),
+    stringsAsFactors = FALSE)
   
-  
-  return(file)
+  return(output)
 }
 
 ## =================================== MAIN ===================================
@@ -158,11 +207,11 @@ if (interactive()){
 
   basicConfig()
   logReset()
-  addHandler(writeToFile, logger="data_logger", file="logs/merge.log")
+  addHandler(writeToFile, logger="merge_logger", file="logs/merge.log")
   loginfo(paste(":\n",
                 " Merging Address and Polling Location Files\n",
                 "---------------------------------------------"),
-          logger="data_logger")
+          logger="merge_logger")
 
 
   ## -------------------------------- LOAD DATA --------------------------------
@@ -179,3 +228,4 @@ if (interactive()){
   ## ----------------------------- NORMALIZE DATA ------------------------------
   polling_places <- VIPNormalizePollingListFile(polling_places)
 }
+
