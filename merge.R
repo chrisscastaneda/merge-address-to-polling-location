@@ -119,65 +119,68 @@ VIPNormalizeAddressFile <- function (file) {
     #   A copy of file with the broken rows fixed.
     # -------------------------------------------------------------------------
     
-    # ## Cache just the broken/dirty rows into a dataframe
-    # d <- file[brokenRows, ]
+    ## Cache just the broken/dirty rows into a dataframe
+    d <- file[brokenRows, ]
 
-    # ## Collapses entire row into a string, removes NA values, and double spaces.
-    # d$string <- sapply(1:nrow(d), function(row) {
-    #   toupper(gsub("  ", " ", gsub(" NA", "", paste(d[row, ], collapse=" "))))
-    # }) 
+    ## Collapses entire row into a string, removes NA values, and double spaces.
+    d$string <- sapply(1:nrow(d), function(row) {
+      toupper(gsub("  ", " ", gsub(" NA", "", paste(d[row, ], collapse=" "))))
+    }) 
 
-    # ## Splits d$string by " " (space) characters and converts to character vector
-    # d$list <- sapply(d$string, function(str) { 
-    #   strsplit(str, split=" ")
-    # })
+    ## Splits d$string by " " (space) characters and converts to character vector
+    d$list <- sapply(d$string, function(str) { 
+      strsplit(str, split=" ")
+    })
 
-    # ## Regex to find the string that looks like a zipcode and cache index value
-    # d$zipCodeIndex <- sapply(1:nrow(d), function(row) {
-    #   grep(kZipcodePattern, d$list[[row]], value=FALSE)
-    # })
+    ## Regex to find the string that looks like a zipcode and cache index value
+    d$zipCodeIndex <- sapply(1:nrow(d), function(row) {
+      grep(kZipcodePattern, d$list[[row]], value=FALSE)
+    })
 
-    # ## Regex to find the string that looks like a suffix of a street address
-    # ## (i.e. Street, Ave., Rd., Lane, etc...) the cache the index value
-    # d$streetEndIndex <- sapply(1:nrow(d), function(row) {
-    #   grep(kCommonStreetSuffixesRegexPattern, d$list[[row]], value=FALSE)
-    # })
+    ## Regex to find the string that looks like a suffix of a street address
+    ## (i.e. Street, Ave., Rd., Lane, etc...) the cache the index value
+    d$streetEndIndex <- sapply(1:nrow(d), function(row) {
+      grep(kCommonStreetSuffixesRegexPattern, d$list[[row]], value=FALSE)
+    })
 
-    # ## Identify string segments that compromise street address
-    # d$Street <- sapply(1:nrow(d), function(row) {
-    #   streetPosition <- 1:tail(d$streetEndIndex[[row]], n=1)
-    #   paste(d$list[[row]][streetPosition], collapse=" ")
-    # })
+    ## Identify string segments that compromise street address
+    d$Street <- sapply(1:nrow(d), function(row) {
+      streetPosition <- 1:tail(d$streetEndIndex[[row]], n=1)
+      paste(d$list[[row]][streetPosition], collapse=" ")
+    })
 
-    # ## Identify city in string based relative location of street address and zip
-    # ## (Will identify city names that are longer than one word)
-    # d$City <- sapply(1:nrow(d), function(row) { 
-    #   cityStart <- tail(d$streetEndIndex[[row]], n=1) + 1  # right after street address
-    #   cityEnd   <- d[row,]$zipCodeIndex - 2  # right before the State.Zip
-    #   paste( d$list[[row]][cityStart:cityEnd], collapse=" ")
-    # })
+    ## Identify city in string based relative location of street address and zip
+    ## (Will identify city names that are longer than one word)
+    d$City <- sapply(1:nrow(d), function(row) { 
+      cityStart <- tail(d$streetEndIndex[[row]], n=1) + 1  # right after street address
+      cityEnd   <- d[row,]$zipCodeIndex - 2  # right before the State.Zip
+      paste( d$list[[row]][cityStart:cityEnd], collapse=" ")
+    })
 
-    # ## Concatenate state and zip per schema of file
-    # d$State.ZIP <- sapply(1:nrow(d), function(row) { 
-    #   paste(d$list[[row]][d[row,]$zipCodeIndex - 1],  # state is right before zip
-    #         d$list[[row]][d[row,]$zipCodeIndex])  # zip
-    # })
+    ## Identify state based on location relative to zip
+    d$State <- sapply(1:nrow(d), function(row) { 
+      paste(d$list[[row]][d[row,]$zipCodeIndex - 1])  # state is right before zip
+    })
+
+    ## Identify zip
+    d$Zip <- sapply(1:nrow(d), function(row) { 
+      paste(d$list[[row]][d[row,]$zipCodeIndex])  # zip
+    })
+
+    ## Assumes precinct is the last string segment 
+    d$Precinct.ID <- sapply(1:nrow(d), function(row) { 
+      tail(d$list[[row]], n=1)
+    })
+
+    ## Assumes country is penultimate string segment
+    d$Country <- sapply(1:nrow(d), function(row) { 
+      tail(d$list[[row]], n=2)[1]
+    })
     
-    # ## Assumes precinct is the last string segment 
-    # d$Precinct <- sapply(1:nrow(d), function(row) { 
-    #   tail(d$list[[row]], n=1)
-    # })
-
-    # ## Assumes country is penultimate string segment
-    # d$Country <- sapply(1:nrow(d), function(row) { 
-    #   tail(d$list[[row]], n=2)[1]
-    # })
-    
-    # ## Replace broken rows in file with repaired rows in d
-    output <- file
-    # sapply(rownames(d), function (row) {
-    #   output[row,] <<- d[row,expectedColumns]
-    # })
+    ## Replace broken rows in file with repaired rows in d
+    sapply(rownames(d), function (row) {
+      output[row,] <<- d[row,expectedColumns]
+    })
     return(output)
   }
   ## END CLOSURES -------------------------------------------------------------
@@ -204,7 +207,7 @@ VIPNormalizeAddressFile <- function (file) {
   if ( hasHolesInData ) {
     file <- RepairDataFile( missingPrecinctIndex )
   }
-  # expectedColumns <- c("Street", "Apt", "City", "State", "Zip", "Precinct.ID")
+  
   ## Prepare output per VIP 3.0 address schema
   output <- data.frame(
     address_location_name = character(rows),
@@ -214,7 +217,6 @@ VIPNormalizeAddressFile <- function (file) {
     address_city          = file$City, 
     address_state         = file$State, 
     address_zip           = file$Zip,
-    # precinct_id           = file$Precinct.ID,
     precinct_id           = NormalizePrecinctId(file$Precinct.ID, file$State ),
     stringsAsFactors = FALSE)
   
@@ -364,8 +366,7 @@ VIPNormalizePollingListFile <- function (file) {
 ## =================================== MAIN ===================================
 if (interactive()){
 
-  ## -------------------------------- LOAD DATA --------------------------------
-
+  ## -------------------------------- LOAD DATA -------------------------------
   addresses <- read.csv(
     'data/VIP Data Associate - File 1_Addresses.csv', 
     stringsAsFactors=FALSE, na.strings="")
@@ -374,12 +375,11 @@ if (interactive()){
     'data/VIP Data Associate - File 2_Precinct Polling List.csv',
      stringsAsFactors=FALSE, na.strings="")
 
-
-  ## ----------------------------- NORMALIZE DATA ------------------------------
+  ## ----------------------------- NORMALIZE DATA -----------------------------
   addresses <- VIPNormalizeAddressFile(addresses)
   polling_places <- VIPNormalizePollingListFile(polling_places)
 
-  ## ------------------------------- MERGE DATA --------------------------------
+  ## ------------------------------- MERGE DATA -------------------------------
   merged_data <- inner_join(x=addresses, y=polling_places, by="precinct_id")
   headers <- c("address_location_name", "address_line", "address_line2", 
                "address_line3", "address_city", "address_state", "address_zip", 
@@ -391,6 +391,8 @@ if (interactive()){
 
   write.csv(merged_data, "VIP_Data_Associate_Merged_Address_Polling.csv", 
             row.names = FALSE)
+
+  ## --------------------------- GENERATE VIP FILES ---------------------------
 
 }
 
