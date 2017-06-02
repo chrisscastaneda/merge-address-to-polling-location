@@ -16,7 +16,7 @@ source("commonStreetAddressSuffixes.R")  # Huge character vector of all common
                                          # Also sets the constant: 
                                          # kCommonStreetSuffixesRegexPattern
 kZipcodePattern  <- "[0-9]{5}([- ][0-9]{4})?"  # "Constant" Regex for zipcodes
-setwd(paste(c(kSettingsPath, "merge-address-to-polling-location/"), collapse=""))
+# setwd(paste(c(kSettingsPath, "merge-address-to-polling-location/"), collapse=""))
 library(dplyr) 
 
 
