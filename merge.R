@@ -60,7 +60,6 @@ NormalizePrecinctId <- function (precincts, states) {
   })
   return(df$pid)
 }
-
 ConvertDataFrameToUpperCase <- function (df) {
   # ---------------------------------------------------------------------------
   # Converts all characters in a dataframe to upper case.
@@ -363,6 +362,39 @@ VIPNormalizePollingListFile <- function (file) {
   return(output)
 }
 
+VIP.Precinct.txt <- function (data) {
+  rows <- nrows(data)
+  output <- data.frame(
+    name = data$polling_address_line
+    number = character(rows)
+    locality_id = character(rows)
+    ward = character(rows)
+    mail_only = character(rows)
+    ballot_style_image_url = character(rows)
+    id = data$
+    stringsAsFactors = FALSE)
+  return(output)
+}
+VIP.PollingLocations.txt <- function (data) {
+  rows <- nrow(data)
+  output <- data.frame(
+    address_location_name = data$address_location_name,
+    address_line1 = data$address_line,
+    address_line2 = data$address_line2,
+    address_line3 = data$address_line3,
+    address_city  = data$address_city,
+    address_state = data$address_state,
+    address_zip = data$address_zip,
+    directions  = character(rows),
+    polling_hours = character(rows),
+    photo_url = character(rows),
+    id = data$precinct_id,
+    stringsAsFactors = FALSE)
+  return(output)
+}
+VIP.PecinctPollingLocation <- function (data) {
+
+}
 ## =================================== MAIN ===================================
 if (interactive()){
 
@@ -393,6 +425,13 @@ if (interactive()){
             row.names = FALSE)
 
   ## --------------------------- GENERATE VIP FILES ---------------------------
-
+  vip_precinct_txt <- VIP.Precinct.txt(polling_places)
+  vip_polling_locations_txt <- VIP.PollingLocations.txt(polling_places)
+  vip_precinct_polling_locations_txt <- VIP.PecinctPollingLocation(
+                                        vip_precinct_txt, vip_polling_locations_txt)
+  
+  
+  write.csv(vip_polling_locations_txt, "vip_polling_locations.txt", row.names = FALSE)
 }
+
 
