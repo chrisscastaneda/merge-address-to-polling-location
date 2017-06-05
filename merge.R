@@ -362,38 +362,132 @@ VIPNormalizePollingListFile <- function (file) {
   return(output)
 }
 
+# > names(merged_data)
+#  [1] "address_location_name"         "address_line"                  "address_line2"                
+#  [4] "address_line3"                 "address_city"                  "address_state"                
+#  [7] "address_zip"                   "precinct_id"                   "polling_address_location_name"
+# [10] "polling_address_line"          "polling_address_line2"         "polling_address_line3"        
+# [13] "polling_address_city"          "polling_address_state"         "polling_address_zip"  
+
+# name,number,locality_id,ward,mail_only,ballot_style_image_url,id
 VIP.Precinct.txt <- function (data) {
-  rows <- nrows(data)
+  # ---------------------------------------------------------------------------
+  # Generates precinct.txt per VIP 3.0 specifications.
+  #
+  # Args:
+  #   data: Dataframe representing addresses and associated polling places. 
+  #         Contains the following columns: address_location_name, address_line, 
+  #         address_line2, address_line3, address_city, address_state, address_zip,
+  #         polling_address_line, polling_address_line2, polling_address_line3, 
+  #         polling_address_city, polling_address_state, polling_address_zip
+  # Returns:
+  #   Dataframe representing the VIP 3.0 formated precinct.txt file.
+  # ---------------------------------------------------------------------------
+  
+  ## Make sure we use each precinct id just once
+  unique_pid <- data$precinct_id %>% unique %>% sort
+
+  ## Cache the number of rows in our return file
+  rows <- unique_pid %>% length
+
+  ## Use city names as precinct names in output file
+  citys <- (sapply(unique_pid, function (pid) {
+              data$address_city[data$precinct_id==pid][[1]][1] 
+            }) %>% as.data.frame())[,1]
+
+  ## Generate output 
   output <- data.frame(
-    name = data$polling_address_line
-    number = character(rows)
-    locality_id = character(rows)
-    ward = character(rows)
-    mail_only = character(rows)
-    ballot_style_image_url = character(rows)
-    id = data$
+    name = citys,  # Use city names as precinct names
+    number = unique_pid,  # Use precinct IDs 
+    locality_id = 1:rows + 1000,  # Make up numbers for exercise 
+    ward = character(rows),
+    mail_only = character(rows),
+    ballot_style_image_url = character(rows),
+    id = 1:rows,  # Unique number for each row
     stringsAsFactors = FALSE)
+
   return(output)
 }
+
+# address_location_name,address_line1,address_line2,address_line3,address_city,
+# address_state,address_zip,directions,polling_hours,photo_url,id
 VIP.PollingLocations.txt <- function (data) {
-  rows <- nrow(data)
+  # ---------------------------------------------------------------------------
+  # Generates polling_locations.txt per VIP 3.0 specifications.
+  #
+  # Args:
+  #   data: Dataframe representing addresses and associated polling places. 
+  #         Contains the following columns: address_location_name, address_line, 
+  #         address_line2, address_line3, address_city, address_state, address_zip,
+  #         polling_address_line, polling_address_line2, polling_address_line3, 
+  #         polling_address_city, polling_address_state, polling_address_zip
+  # Returns:
+  #   Dataframe representing the VIP 3.0 formated polling_locations.txt file.
+  # ---------------------------------------------------------------------------
+
+  ## Make sure we use each precinct id just once
+  unique_pid <- data$precinct_id %>% unique %>% sort
+
+  ## Cache the number of rows in our return file
+  rows <- unique_pid %>% length
+
+  ## Generate output 
   output <- data.frame(
-    address_location_name = data$address_location_name,
-    address_line1 = data$address_line,
-    address_line2 = data$address_line2,
-    address_line3 = data$address_line3,
-    address_city  = data$address_city,
-    address_state = data$address_state,
-    address_zip = data$address_zip,
+    address_location_name = character(rows),
+    address_line1 = (sapply(unique_pid, function (pid) {
+        data$polling_address_line[data$precinct_id==pid][[1]][1] 
+      }) %>% as.data.frame())[,1],
+    address_line2 = (sapply(unique_pid, function (pid) {
+        data$polling_address_line2[data$precinct_id==pid][[1]][1] 
+      }) %>% as.data.frame())[,1],
+    address_line3 = (sapply(unique_pid, function (pid) {
+        data$polling_address_line3[data$precinct_id==pid][[1]][1] 
+      }) %>% as.data.frame())[,1],
+    address_city  = (sapply(unique_pid, function (pid) {
+        data$polling_address_city[data$precinct_id==pid][[1]][1] 
+      }) %>% as.data.frame())[,1],
+    address_state = (sapply(unique_pid, function (pid) {
+        data$polling_address_state[data$precinct_id==pid][[1]][1] 
+      }) %>% as.data.frame())[,1],
+    address_zip = (sapply(unique_pid, function (pid) {
+        data$polling_address_zip[data$precinct_id==pid][[1]][1] 
+      }) %>% as.data.frame())[,1],
     directions  = character(rows),
     polling_hours = character(rows),
     photo_url = character(rows),
-    id = data$precinct_id,
+    id = unique_pid,
     stringsAsFactors = FALSE)
   return(output)
 }
-VIP.PecinctPollingLocation <- function (data) {
 
+# precinct_id,polling_location_id
+VIP.PecinctPollingLocation <- function (data) {
+  # ---------------------------------------------------------------------------
+  # Generates precinct_polling_locations.txt per VIP 3.0 specifications.
+  #
+  # Args:
+  #   data: Dataframe representing addresses and associated polling places. 
+  #         Contains the following columns: address_location_name, address_line, 
+  #         address_line2, address_line3, address_city, address_state, address_zip,
+  #         polling_address_line, polling_address_line2, polling_address_line3, 
+  #         polling_address_city, polling_address_state, polling_address_zip
+  # Returns:
+  #   Dataframe representing the VIP 3.0 formated precinct_polling_locations.txt file.
+  # ---------------------------------------------------------------------------
+
+  ## Make sure we use each precinct id just once
+  unique_pid <- data$precinct_id %>% unique %>% sort
+
+  ## Cache the number of rows in our return file
+  rows <- unique_pid %>% length
+
+  ## Generate output 
+  output <- data.frame(
+    precinct_id = 1:rows,  # Same as in VIP.Precinct.txt()
+    polling_location_id = unique_pid,  # Same as in VIP.PollingLocations.txt()
+    stringsAsFactors = FALSE)
+
+  return(output)
 }
 ## =================================== MAIN ===================================
 if (interactive()){
@@ -425,13 +519,15 @@ if (interactive()){
             row.names = FALSE)
 
   ## --------------------------- GENERATE VIP FILES ---------------------------
-  vip_precinct_txt <- VIP.Precinct.txt(polling_places)
-  vip_polling_locations_txt <- VIP.PollingLocations.txt(polling_places)
-  vip_precinct_polling_locations_txt <- VIP.PecinctPollingLocation(
-                                        vip_precinct_txt, vip_polling_locations_txt)
+
+  vip_precinct_txt <- VIP.Precinct.txt(merged_data)
+  vip_polling_locations_txt <- VIP.PollingLocations.txt(merged_data)
+  vip_precinct_polling_locations_txt <- VIP.PecinctPollingLocation(merged_data)
   
   
-  write.csv(vip_polling_locations_txt, "vip_polling_locations.txt", row.names = FALSE)
+  write.csv(vip_precinct_txt, "precinct.txt", row.names = FALSE)
+  write.csv(vip_polling_locations_txt, "polling_locations.txt", row.names = FALSE)
+  write.csv(vip_precinct_polling_locations_txt, "precinct_polling_locations.txt", row.names = FALSE)
 }
 
 

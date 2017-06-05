@@ -2,7 +2,15 @@
 
 Given a spreadsheet of addresses ([`VIP Data Associate - File 1_Addresses.csv`](https://github.com/chrisscastaneda/merge-address-to-polling-location/blob/master/data/VIP%20Data%20Associate%20-%20File%201_Addresses.csv)) and a spreadsheet of associated polling paces ([`VIP Data Associate - File 2_Precinct Polling List.csv`](https://github.com/chrisscastaneda/merge-address-to-polling-location/blob/master/data/VIP%20Data%20Associate%20-%20File%202_Precinct%20Polling%20List.csv)), this is how one could merge two files along a common attribute, in this case along the Precinct ID values in each file.  While it's certainly possible to manually clean and merge two spreadsheets in Excel, in order to accomplish the task efficiently at scale it is important to accomplish the task programmatically.  
 
-You can examine my solution to this problem here: [`merge.R`](https://github.com/chrisscastaneda/merge-address-to-polling-location/blob/master/merge.R).  I also built a simple Shiny webapp that will merge the two data files for you: [https://chrisscastaneda.shinyapps.io/merge-address-to-polling-location/](https://chrisscastaneda.shinyapps.io/merge-address-to-polling-location/).  And here is the final merged file: [`VIP_Data_Associate_Merged_Address_Polling.csv`](https://github.com/chrisscastaneda/merge-address-to-polling-location/blob/master/VIP_Data_Associate_Merged_Address_Polling.csv).
+You can examine my solution to this problem here: [`merge.R`](https://github.com/chrisscastaneda/merge-address-to-polling-location/blob/master/merge.R).  I also built a simple Shiny webapp that will merge the two data files for you: [https://chrisscastaneda.shinyapps.io/merge-address-to-polling-location/](https://chrisscastaneda.shinyapps.io/merge-address-to-polling-location/).  
+
+Here are the requested files:
+
+  - [`VIP_Data_Associate_Merged_Address_Polling.csv`](https://github.com/chrisscastaneda/merge-address-to-polling-location/blob/master/VIP_Data_Associate_Merged_Address_Polling.csv)
+  - [`precinct.txt`](https://github.com/chrisscastaneda/merge-address-to-polling-location/blob/master/precinct.txt)
+  - [`polling_locations.txt`](https://github.com/chrisscastaneda/merge-address-to-polling-location/blob/master/polling_locations.txt)
+  - [`precinct_polling_locations.txt`](https://github.com/chrisscastaneda/merge-address-to-polling-location/blob/master/precinct_polling_locations.txt)
+
 
 ## Step-by-step Overview:
 
