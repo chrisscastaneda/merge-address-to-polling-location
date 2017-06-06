@@ -10,13 +10,13 @@ Given a spreadsheet of addresses ([`VIP Data Associate - File 1_Addresses.csv`](
 
 ### Here are the requested files:
 
-This is the cleaned and merged file:
+This is the cleaned and merged data file:
 
   - [`VIP_Data_Associate_Merged_Address_Polling.csv`](https://github.com/chrisscastaneda/merge-address-to-polling-location/blob/master/VIP_Data_Associate_Merged_Address_Polling.csv)
 
 These are the requested VIP 3.0 formated files:
 
-  - [`precinct.txt`](https://github.com/chrisscastaneda/merge-address-to-polling-location/blob/master/precinct.txt): 
+  - [`precinct.txt`](https://github.com/chrisscastaneda/merge-address-to-polling-location/blob/master/precinct.txt)
   - [`polling_locations.txt`](https://github.com/chrisscastaneda/merge-address-to-polling-location/blob/master/polling_locations.txt)
   - [`precinct_polling_locations.txt`](https://github.com/chrisscastaneda/merge-address-to-polling-location/blob/master/precinct_polling_locations.txt)
 
@@ -41,7 +41,7 @@ We want it to look like this:
 
 A good rule of thumb for identifying the rows in the data that may be misaligned is looking for missing values in the last/right-most column in the data.  In our case, this is the Precinct ID column in each of our spreadsheets.  This has the added benefit of being a mandatory column for each of our spreadsheets and the column we're ultimately going to merge them by, so we definitely want to make sure there are no holes here.
 
-Once we've identified the rows that are potentially misaligned, we now must figure out how to realign them to the proper schema.  The approach I took was to concatenate each row into a string, then parse that string using regex pattern matching to identify key parts in the address.  (It was also helpful to split the concatenated string up into an array of words, i.e. split the string at each space.)
+Once we've identified the rows that are potentially misaligned, we now must figure out how to realign them to the proper schema.  The approach I took was to concatenate each row into a string, then parse that string using regex pattern matching to identify key parts in the address.  It was also helpful to split the concatenated string up into an array of words, i.e. split the string at each space.
 
 So our example address as just a string looks like this:
 
@@ -55,11 +55,11 @@ And if we convert that into an array of words, we get something that looks like 
 [974][Great][Plain][Avenue][Needham][MA][02492][USA][MAS-006]
 ```
 
-Using that information we can properly atomize the addresses strings into their component parts.  First I located the zipcode in each string using the following regex pattern: `[0-9]{5}([- ][0-9]{4})?`.  Once we know where the zipcode is in the address string, we can inch over and identify the state substring next to the zipcode.  Next I located the end of the street address substring by looking for street address suffixes (i.e. Ave., Road, Ln., St. Blvd, etc).  The regex for street address suffixes looks a little like this: `\b(?:AVE|BLVD|LN|RD|ROAD|etc|etc)\b`.  In actuality I refereed to USPS's website and found a list of over 900 common street address suffixes, you can see how I actually constructed that regex pattern in the file [`commonStreetAddressSuffixes.R`](https://github.com/chrisscastaneda/merge-address-to-polling-location/blob/master/commonStreetAddressSuffixes.R).  From there, you have enough information to fully parse the address.  
+Once we can identify key substrings in the addresses we can begin to properly atomize the address strings into their component parts.  First I located the zipcode in each string using the following regex pattern: `[0-9]{5}([- ][0-9]{4})?`.  Once we know where the zipcode is in the address string, we can inch over and identify the state substring next to the zipcode.  Next I located the end of the street address substring by looking for street address suffixes (i.e. Ave., Road, Ln., St. Blvd, etc).  The regex for street address suffixes looks a little like this: `\b(?:AVE|BLVD|LN|RD|ROAD|etc|etc)\b`.  In actuality I refereed to USPS's website and found a list of over 900 common street address suffixes, you can see how I actually constructed that regex pattern in the file [`commonStreetAddressSuffixes.R`](https://github.com/chrisscastaneda/merge-address-to-polling-location/blob/master/commonStreetAddressSuffixes.R).  From there, you have enough information to fully parse the address.  
 
-The next major step is to normalize the Precinct ID values in each data file.  To do this I took the existing precinct ID values and split each of those strings by the dash in each string to separate the ID prefixes from the ID suffixes.  I replaced the prefixes with the standard two letter state abbreviation and ensured each suffix was three digits long (I made sure that leading zeros were added to any suffix values that were less than thee digits).
+The next major step is to normalize the Precinct ID values in each data file.  To do this I took the existing precinct ID values and split each of those strings by the dash in each string to separate the ID prefixes from the ID suffixes.  I replaced the prefixes with the standard two letter state abbreviation and ensured each suffix was three digits long (i.e. I made sure that leading zeros were added to any suffix values that were less than thee digits).
 
-Once the Precinct IDs in each spreadsheet are standardized, it's then relatively straight forward to merge or join the two tables together along the common attribute (specifically, in this case, we want to do a *left inner join* on the data tables).
+Once the Precinct IDs in each spreadsheet are standardized, it's then relatively straight forward to merge or join the two tables together along the common attribute.Specifically, in this case, we want to do a *left inner join* on the data tables.
 
 
 
