@@ -31,6 +31,7 @@ For example, a misaligned row could look like this:
 |974 Great Plain Avenue Needham MA 02492|USA|MAS-006| | |
 
 We want it to look like this:
+
 |Street|City|State Zip|Country|Precinct|
 |------|----|---------|-------|--------|
 |974 Great Plain Avenue|Needham|MA 02492|USA|MAS-006|
@@ -38,9 +39,11 @@ We want it to look like this:
 Once we've identified the rows that are potentially misaligned, we now must figure out how to realign them to the proper schema.  The approach I took was to concatenate each row into a string, then parse that string using regex pattern matching to identify key parts in the address.  (It was also helpful to split the concatenated string up into an array of words, i.e. split the string at each space.)
 
 So our example address as just a string looks like this:
+
 ```974 Great Plain Avenue Needham MA 02492 USA MAS-006```
 
 And if we convert that into an array of words, we get something that looks like this:
+
 ```[974][Great][Plain][Avenue][Needham][MA][02492][USA][MAS-006]```
 
 Using that information we can properly atomize the addresses in each string into its component parts.  First I located the zipcode in each string using the following regex pattern: `[0-9]{5}([- ][0-9]{4})?`.  Once we know where the zipcode is in the address string, we can inch over and identify the state substring next to the zipcode.  Next I located the end of the street address substring by looking for street address suffixes (i.e. Ave., Road, Ln., St. Blvd, etc).  The regex for street address suffixes looks a little like this: `\b(?:AVE|BLVD|LN|RD|ROAD|etc|etc)\b`.  In actuality I refereed to USPS's website and found a list of over 900 common street address suffixes, you can see how I actually constructed that regex pattern in the file [`commonStreetAddressSuffixes.R`](https://github.com/chrisscastaneda/merge-address-to-polling-location/blob/master/commonStreetAddressSuffixes.R).  From there, you have enough information to fully parse the address.  
