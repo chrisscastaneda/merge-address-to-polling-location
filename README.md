@@ -1,10 +1,14 @@
 # Exercise in Programmatically Matching Address to Polling Places
 
-Given a spreadsheet of addresses ([`VIP Data Associate - File 1_Addresses.csv`](https://github.com/chrisscastaneda/merge-address-to-polling-location/blob/master/data/VIP%20Data%20Associate%20-%20File%201_Addresses.csv)) and a spreadsheet of associated polling paces ([`VIP Data Associate - File 2_Precinct Polling List.csv`](https://github.com/chrisscastaneda/merge-address-to-polling-location/blob/master/data/VIP%20Data%20Associate%20-%20File%202_Precinct%20Polling%20List.csv)), this is how one could merge two files along a common attribute, in this case along the Precinct ID values in each file.  While it's certainly possible to manually clean and merge two spreadsheets in Excel, in order to accomplish the task efficiently at scale it is important to accomplish the task programmatically.  
+Given a spreadsheet of addresses ([`VIP Data Associate - File 1_Addresses.csv`](https://github.com/chrisscastaneda/merge-address-to-polling-location/blob/master/data/VIP%20Data%20Associate%20-%20File%201_Addresses.csv)) and a spreadsheet of associated polling paces ([`VIP Data Associate - File 2_Precinct Polling List.csv`](https://github.com/chrisscastaneda/merge-address-to-polling-location/blob/master/data/VIP%20Data%20Associate%20-%20File%202_Precinct%20Polling%20List.csv)), this is how one could merge two files along a common attribute, in this case along the Precinct ID values in each file.  While it's certainly possible to manually clean and merge two spreadsheets in Excel, in order to accomplish the task efficiently at scale it is important to approach the task programmatically.  
 
-You can examine my solution to this problem here: [`merge.R`](https://github.com/chrisscastaneda/merge-address-to-polling-location/blob/master/merge.R).  I also built a simple Shiny webapp that will merge the two data files for you: [https://chrisscastaneda.shinyapps.io/merge-address-to-polling-location/](https://chrisscastaneda.shinyapps.io/merge-address-to-polling-location/).  
+### The following files are included in my project:
 
-Here are the requested files:
+- **[`merge.R`](https://github.com/chrisscastaneda/merge-address-to-polling-location/blob/master/merge.R)**: This is the primary file that contains my solution and ultimately generates the requested files listed below. 
+- **[`commonStreetAddressSuffixes.R`](https://github.com/chrisscastaneda/merge-address-to-polling-location/blob/master/commonStreetAddressSuffixes.R)**: Helper file sourced by `merge.R`.  Encapsulates a large regex pattern for identifying street address suffixes.
+- **[`app.R`](https://github.com/chrisscastaneda/merge-address-to-polling-location/blob/master/app.R)**: Shiny webapp that allows user to upload an address file and a polling list file, then cleans and merges them.  You can checkout the live Shiny app here: [https://chrisscastaneda.shinyapps.io/merge-address-to-polling-location/](https://chrisscastaneda.shinyapps.io/merge-address-to-polling-location/).
+
+### Here are the requested files:
 
   - [`VIP_Data_Associate_Merged_Address_Polling.csv`](https://github.com/chrisscastaneda/merge-address-to-polling-location/blob/master/VIP_Data_Associate_Merged_Address_Polling.csv)
   - [`precinct.txt`](https://github.com/chrisscastaneda/merge-address-to-polling-location/blob/master/precinct.txt)
@@ -14,7 +18,9 @@ Here are the requested files:
 
 ## Step-by-step Overview:
 
-The first step is to check for any common data entry errors, correct for messy data, and otherwise deal with any holes that may be in the data.  One of the most common types of "messy" data is data that is misaligned, that is the data in one row may not be lined up properly with the overall schema of the spreadsheet.  
+I decided to solve this problem using R, however a similar platform, such as Python could easily be used instead.  While my response is written in R, I'll explain my basic approach in a manner that is language agnostic. 
+
+The first step is to check for any common data entry errors, correct for messy data, and otherwise deal with any holes that may be in the data.  One of the most common types of "messy" data is data that is misaligned, that is the data in one row may not be lined up properly with the overall schema of the spreadsheet or table.  
 
 A good rule of thumb for identifying the rows in the data that may be misaligned is looking for missing values in the last/right-most column in the data.  In our case, this is the Precinct ID column in each of our spreadsheets.  This has the added benefit of being a mandatory column for each of our spreadsheets and the column we're ultimately going to merge them by, so definitely want to make sure there are no holes here.
 
