@@ -21,7 +21,7 @@ These are the requested VIP 3.0 formated files:
   - [`precinct_polling_locations.txt`](https://github.com/chrisscastaneda/merge-address-to-polling-location/blob/master/precinct_polling_locations.txt)
 
 
-## Step-by-step Overview:
+## Explanation:
 
 I decided to solve this problem using R, however a similar platform, such as Python, could easily be used instead.  While my response is written in R I'll explain my basic approach in a manner that is language agnostic. 
 
