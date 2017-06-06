@@ -1,5 +1,6 @@
 settings.R
 diff.diff
+*.Rproj
 
 # Below Created by https://www.gitignore.io/api/r
 ### R ###
