@@ -64,6 +64,7 @@ Once the Precinct IDs in each spreadsheet are standardized, it's then relatively
 Once you have the basic clean up and merge algorithm worked out, it then becomes important to operationalize your solution.  Creating a simple web app is one way to do this.  
 
 <img alt="Shiny Merge App" src="screenshot.png" style="max-width:75%;">
+
 [chrisscastaneda.shinyapps.io/merge-address-to-polling-location/](https://chrisscastaneda.shinyapps.io/merge-address-to-polling-location/)
 
 For the purpose of this exercise, I created a necessarily trivial web app using the [Shiny web application framework](http://shiny.rstudio.com/).  The web app is more a proof of concept rather than something production ready, but is an example of how one could easily take method describe above and apply it on a much larger scale.
