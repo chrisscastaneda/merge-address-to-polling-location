@@ -59,7 +59,7 @@ Once we can identify key substrings in the addresses we can begin to properly at
 
 The next major step is to normalize the Precinct ID values in each data file.  To do this I took the existing precinct ID values and split each of those strings by the dash in each string to separate the ID prefixes from the ID suffixes.  I replaced the prefixes with the standard two letter state abbreviation and ensured each suffix was three digits long (i.e. I made sure that leading zeros were added to any suffix values that were less than thee digits).
 
-Once the Precinct IDs in each spreadsheet are standardized, it's then relatively straight forward to merge or join the two tables together along the common attribute.Specifically, in this case, we want to do a *left inner join* on the data tables.
+Once the Precinct IDs in each spreadsheet are standardized, it's then relatively straight forward to merge or join the two tables together along the common attribute. Specifically, in this case, we want to do a **left inner join** on the data tables.
 
 
 
