@@ -46,7 +46,7 @@ Once we've identified the rows that are potentially misaligned, we now must figu
 So our example address as just a string looks like this:
 
 ```
-974 Great Plain Avenue Needham MA 02492 USA MAS-006
+"974 Great Plain Avenue Needham MA 02492 USA MAS-006"
 ```
 
 And if we convert that into an array of words, we get something that looks like this:
@@ -61,11 +61,11 @@ The next major step is to normalize the Precinct ID values in each data file.  T
 
 Once the Precinct IDs in each spreadsheet are standardized, it's then relatively straight forward to merge or join the two tables together along the common attribute. Specifically, in this case, we want to do a **left inner join** on the data tables.
 
+Once you have the basic clean up and merge algorithm worked out, it then becomes important to operationalize your solution.  Creating a simple web app is one way to do this.  
 
+![Shiny Merge App](screenshot.png)
 
-
-
-
+For the purpose of this exercise, I created a necessarily trivial web app using the [Shiny web application framework](http://shiny.rstudio.com/).  The web app is more a proof of concept rather than something production ready, but is an example of how one could easily take method describe above and apply it on a much larger scale.
 
 
 
