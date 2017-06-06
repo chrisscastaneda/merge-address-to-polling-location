@@ -6,7 +6,7 @@ Given a spreadsheet of addresses ([`VIP Data Associate - File 1_Addresses.csv`](
 
 - [`merge.R`](https://github.com/chrisscastaneda/merge-address-to-polling-location/blob/master/merge.R): This is the primary file that contains my solution and ultimately generates the requested files listed below. 
 - [`commonStreetAddressSuffixes.R`](https://github.com/chrisscastaneda/merge-address-to-polling-location/blob/master/commonStreetAddressSuffixes.R): Helper file sourced by `merge.R`.  Encapsulates a large regex pattern for identifying street address suffixes.
-- [`app.R`](https://github.com/chrisscastaneda/merge-address-to-polling-location/blob/master/app.R): Shiny webapp that allows user to upload an address file and a polling list file, then cleans and merges them.  You can checkout the live Shiny app here: [https://chrisscastaneda.shinyapps.io/merge-address-to-polling-location/](https://chrisscastaneda.shinyapps.io/merge-address-to-polling-location/).
+- [`app.R`](https://github.com/chrisscastaneda/merge-address-to-polling-location/blob/master/app.R): Shiny webapp that allows user to upload an address file and a polling list file, then cleans and merges them.  You can checkout the live Shiny app here: [chrisscastaneda.shinyapps.io/merge-address-to-polling-location/](https://chrisscastaneda.shinyapps.io/merge-address-to-polling-location/).
 
 ### Here are the requested files:
 
@@ -63,7 +63,7 @@ Once the Precinct IDs in each spreadsheet are standardized, it's then relatively
 
 Once you have the basic clean up and merge algorithm worked out, it then becomes important to operationalize your solution.  Creating a simple web app is one way to do this.  
 
-![Shiny Merge App](screenshot.png)
+![[Shiny Merge App](screenshot.png)](https://chrisscastaneda.shinyapps.io/merge-address-to-polling-location/)
 
 For the purpose of this exercise, I created a necessarily trivial web app using the [Shiny web application framework](http://shiny.rstudio.com/).  The web app is more a proof of concept rather than something production ready, but is an example of how one could easily take method describe above and apply it on a much larger scale.
 
